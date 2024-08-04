@@ -152,6 +152,7 @@ export default function SpotlightPreview() {
         <p className="mt-4 font-normal text-base text-neutral-300 max-w-lg text-center mx-auto">
           Dont miss a thing in your preparation, our app will help you with Core subjects, DSA and SQL. Solve The challenges and get the best out of you.
         </p>
+
         <p className="mt-4 font-normal text-base text-neutral-300 max-w-lg text-center mx-auto"><Link href="/auth/register">
           <button className="p-[3px] w-50 relative ">
             <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-sm" />

@@ -9,15 +9,16 @@ export default function Dashboard() {
     const router = useRouter();
 
     useEffect(() => {
+        fetchUser();
+    }, []);
+
+    const fetchUser = async () => {
         const token = localStorage.getItem('token');
         if (!token) {
             router.push('/auth/login');
-        } else {
-            fetchUser(token);
+            return;
         }
-    }, []);
 
-    const fetchUser = async (token) => {
         try {
             const res = await fetch('/api/user', {
                 headers: { Authorization: `Bearer ${token}` },

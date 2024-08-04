@@ -1,34 +1,47 @@
-import clientPromise from '@/lib/mongodb';
 import { verifyToken } from '@/lib/auth';
+import leetcodeProblems from '@/data/leetcode';
+import dbmsQuestions from '@/data/dbms';
+import sqlQuestions from '@/data/sql';
+import osQuestions from '@/data/os';
+import clientPromise from '@/lib/mongodb';
+import { ObjectId } from 'mongodb';
 
 export async function GET(req) {
-    const token = req.headers.get('Authorization')?.split(' ')[1];
-    const decoded = verifyToken(token);
+    try {
+        const token = req.headers.get('Authorization')?.split(' ')[1];
+        const decoded = verifyToken(token);
 
-    if (!decoded) {
-        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-            status: 401,
+        if (!decoded) {
+            return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+                status: 401,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+
+        const getRandomItems = (arr, num) => {
+            const shuffled = arr.sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, num);
+        };
+
+        const challenge = {
+            date: new Date().toISOString().split('T')[0],
+            leetcode: getRandomItems(leetcodeProblems, 1)[0],
+            dbms: getRandomItems(dbmsQuestions, 5),
+            sql: getRandomItems(sqlQuestions, 5),
+            os: getRandomItems(osQuestions, 5)
+        };
+
+        return new Response(JSON.stringify(challenge), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+        });
+    } catch (error) {
+        console.error("GET /api/daily-challenge Error:", error);
+        return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
+            status: 500,
             headers: { 'Content-Type': 'application/json' },
         });
     }
-
-    // Here you would typically fetch the daily challenge from your database
-    // This is a placeholder
-    const challenge = {
-        date: new Date().toISOString().split('T')[0],
-        leetcode: {
-            title: "Two Sum",
-            url: "https://leetcode.com/problems/two-sum/"
-        },
-        dbms: Array(5).fill("DBMS Question"),
-        sql: Array(5).fill("SQL Question"),
-        os: Array(5).fill("OS Question")
-    };
-
-    return new Response(JSON.stringify(challenge), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-    });
 }
 
 export async function POST(req) {
@@ -46,13 +59,33 @@ export async function POST(req) {
     const client = await clientPromise;
     const db = client.db("dailyChallengeDB");
 
-    await db.collection('users').updateOne(
-        { _id: decoded.userId },
-        { $inc: { completedChallenges: 1 } }
-    );
+    try {
+        const result = await db.collection('users').updateOne(
+            { _id: new ObjectId(decoded.userId) },
+            {
+                $inc: { completedChallenges: 1 },
+                $push: {
+                    completedDates: new Date().toISOString().split('T')[0]
+                }
+            }
+        );
 
-    return new Response(JSON.stringify({ message: 'Challenge completed' }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-    });
+        if (result.modifiedCount === 0) {
+            return new Response(JSON.stringify({ error: 'User not found or challenge already completed today' }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+
+        return new Response(JSON.stringify({ message: 'Challenge completed and count updated' }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+        });
+    } catch (error) {
+        console.error('Error updating challenge completion:', error);
+        return new Response(JSON.stringify({ error: 'Server error' }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' },
+        });
+    }
 }

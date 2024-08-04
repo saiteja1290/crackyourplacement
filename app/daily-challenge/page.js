@@ -10,7 +10,8 @@ export default function DailyChallenge() {
     const [completed, setCompleted] = useState({
         leetcode: false,
         dbms: Array(5).fill(false),
-        sql: Array(5).fill(false), os: Array(5).fill(false),
+        sql: Array(5).fill(false),
+        os: Array(5).fill(false),
     });
     const router = useRouter();
 
@@ -43,23 +44,29 @@ export default function DailyChallenge() {
             return;
         }
 
-        const res = await fetch('/api/daily-challenge', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({ completed }),
-        });
+        try {
+            const res = await fetch('/api/daily-challenge', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ completed }),
+            });
 
-        if (res.ok) {
-            alert('Challenge completed!');
-            router.push('/dashboard');
-        } else {
-            alert('Failed to submit challenge');
+            if (res.ok) {
+                const data = await res.json();
+                alert(data.message);
+                router.push('/dashboard');
+            } else {
+                const errorData = await res.json();
+                alert(errorData.error || 'Failed to submit challenge');
+            }
+        } catch (error) {
+            console.error('Error submitting challenge:', error);
+            alert('An error occurred while submitting the challenge');
         }
     };
-
     if (!challenge) return <div>Loading...</div>;
 
     return (
@@ -74,7 +81,7 @@ export default function DailyChallenge() {
                             onCheckedChange={(checked) => setCompleted({ ...completed, leetcode: checked })}
                             className="mr-2"
                         />
-                        <a href={challenge.leetcode.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                        <a href={challenge.leetcode.link} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
                             {challenge.leetcode.title}
                         </a>
                     </div>

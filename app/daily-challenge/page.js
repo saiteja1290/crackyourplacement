@@ -18,6 +18,7 @@ export default function DailyChallenge() {
         sql: Array(5).fill(false),
         os: Array(5).fill(false),
     });
+    const [completedToday, setCompletedToday] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -37,6 +38,7 @@ export default function DailyChallenge() {
         if (res.ok) {
             const data = await res.json();
             setChallenge(data);
+            setCompletedToday(data.completedToday);
         } else {
             alert('Failed to fetch challenge');
         }
@@ -76,9 +78,17 @@ export default function DailyChallenge() {
     if (!challenge) return <div>Loading...</div>;
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen py-2">
-            <h1 className="text-4xl font-bold mb-8">Daily Challenge</h1>
-            <div className="w-full max-w-md">
+        <div className="relative flex flex-col items-center justify-center min-h-screen py-2">
+            {completedToday && (
+                <div className="absolute inset-0 flex items-center justify-center bg-opacity-100 z-50">
+                    <div className="text-center p-6 rounded shadow-lg">
+                        <h1 className="text-2xl font-bold">You have already completed today's challenge!</h1>
+                    </div>
+                </div>
+            )}
+
+            {/* <h1 className="text-4xl font-bold mb-8">Daily Challenge</h1> */}
+            <div className={`w-full max-w-md ${completedToday ? 'blur-sm' : ''}`}>
                 <div className="mb-4">
                     <h2 className="text-2xl font-bold mb-2">LeetCode POTD</h2>
                     <div className="flex items-center">
@@ -86,6 +96,7 @@ export default function DailyChallenge() {
                             checked={completed.leetcode}
                             onCheckedChange={(checked) => setCompleted({ ...completed, leetcode: checked })}
                             className="mr-2"
+                            disabled={completedToday}
                         />
                         <a href={challenge.leetcode.link} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
                             {challenge.leetcode.title}
@@ -106,6 +117,7 @@ export default function DailyChallenge() {
                                             setCompleted({ ...completed, [category]: newCategory });
                                         }}
                                         className="mr-2"
+                                        disabled={completedToday}
                                     />
                                     <span>{question.question}</span>
                                 </div>
@@ -113,7 +125,7 @@ export default function DailyChallenge() {
                                     const newReveal = [...reveal[category]];
                                     newReveal[index] = !newReveal[index];
                                     setReveal({ ...reveal, [category]: newReveal });
-                                }} className="w-full">
+                                }} className="w-full" disabled={completedToday}>
                                     {reveal[category][index] ? 'Hide Solution' : 'Reveal Solution'}
                                 </Button>
                                 {reveal[category][index] && <div className="mt-2">{question.solution}</div>}
@@ -121,7 +133,9 @@ export default function DailyChallenge() {
                         ))}
                     </div>
                 ))}
-                <Button onClick={handleSubmit} className="w-full mt-4">Submit Challenge</Button>
+                {!completedToday && (
+                    <Button onClick={handleSubmit} className="w-full mt-4">Submit Challenge</Button>
+                )}
             </div>
         </div>
     );

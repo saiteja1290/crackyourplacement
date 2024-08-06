@@ -23,12 +23,22 @@ export async function GET(req) {
             return shuffled.slice(0, num);
         };
 
+        const client = await clientPromise;
+        const db = client.db("dailyChallengeDB");
+
+        // Fetch user data to check completed dates
+        const user = await db.collection('users').findOne({ _id: new ObjectId(decoded.userId) });
+        const today = new Date().toISOString().split('T')[0];
+        const completedToday = user.completedDates.includes(today);
+
         const challenge = {
-            date: new Date().toISOString().split('T')[0],
+            date: today,
             leetcode: getRandomItems(leetcodeProblems, 1)[0],
             dbms: getRandomItems(dbmsQuestions, 5),
             sql: getRandomItems(sqlQuestions, 5),
-            os: getRandomItems(osQuestions, 5)
+            os: getRandomItems(osQuestions, 5),
+            completedDates: user.completedDates || [],
+            completedToday
         };
 
         return new Response(JSON.stringify(challenge), {
@@ -43,7 +53,6 @@ export async function GET(req) {
         });
     }
 }
-
 export async function POST(req) {
     const token = req.headers.get('Authorization')?.split(' ')[1];
     const decoded = verifyToken(token);
@@ -60,18 +69,29 @@ export async function POST(req) {
     const db = client.db("dailyChallengeDB");
 
     try {
+        const user = await db.collection('users').findOne({ _id: new ObjectId(decoded.userId) });
+        const today = new Date().toISOString().split('T')[0];
+        const completedToday = user.completedDates.includes(today);
+
+        if (completedToday) {
+            return new Response(JSON.stringify({ error: 'Challenge already completed today' }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+
         const result = await db.collection('users').updateOne(
             { _id: new ObjectId(decoded.userId) },
             {
                 $inc: { completedChallenges: 1 },
                 $push: {
-                    completedDates: new Date().toISOString().split('T')[0]
+                    completedDates: today
                 }
             }
         );
 
         if (result.modifiedCount === 0) {
-            return new Response(JSON.stringify({ error: 'User not found or challenge already completed today' }), {
+            return new Response(JSON.stringify({ error: 'User not found or failed to update' }), {
                 status: 400,
                 headers: { 'Content-Type': 'application/json' },
             });

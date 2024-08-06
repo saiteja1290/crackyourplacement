@@ -6,7 +6,7 @@ import { ThemeProvider } from './components/theme-provider'
 import { GeistSans } from "geist/font/sans";
 import Footer from './components/Footer';
 export const metadata = {
-  title: 'Game Finder',
+  title: 'Crackyourplacement',
   description: 'Find and join local games',
 }
 

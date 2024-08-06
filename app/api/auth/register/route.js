@@ -20,6 +20,7 @@ export async function POST(req) {
         username,
         password: hashedPassword,
         completedChallenges: 0,
+        completedDates: [],
     });
 
     const token = generateToken(result.insertedId.toString());

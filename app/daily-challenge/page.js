@@ -13,6 +13,11 @@ export default function DailyChallenge() {
         sql: Array(5).fill(false),
         os: Array(5).fill(false),
     });
+    const [reveal, setReveal] = useState({
+        dbms: Array(5).fill(false),
+        sql: Array(5).fill(false),
+        os: Array(5).fill(false),
+    });
     const router = useRouter();
 
     useEffect(() => {
@@ -67,6 +72,7 @@ export default function DailyChallenge() {
             alert('An error occurred while submitting the challenge');
         }
     };
+
     if (!challenge) return <div>Loading...</div>;
 
     return (
@@ -90,17 +96,27 @@ export default function DailyChallenge() {
                     <div key={category} className="mb-4">
                         <h2 className="text-2xl font-bold mb-2">{category.toUpperCase()} Questions</h2>
                         {challenge[category].map((question, index) => (
-                            <div key={index} className="flex items-center mb-2">
-                                <Checkbox
-                                    checked={completed[category][index]}
-                                    onCheckedChange={(checked) => {
-                                        const newCategory = [...completed[category]];
-                                        newCategory[index] = checked;
-                                        setCompleted({ ...completed, [category]: newCategory });
-                                    }}
-                                    className="mr-2"
-                                />
-                                <span>{question}</span>
+                            <div key={index} className="flex flex-col items-start mb-4 p-4 border rounded shadow">
+                                <div className="flex items-center mb-2 w-full">
+                                    <Checkbox
+                                        checked={completed[category][index]}
+                                        onCheckedChange={(checked) => {
+                                            const newCategory = [...completed[category]];
+                                            newCategory[index] = checked;
+                                            setCompleted({ ...completed, [category]: newCategory });
+                                        }}
+                                        className="mr-2"
+                                    />
+                                    <span>{question.question}</span>
+                                </div>
+                                <Button onClick={() => {
+                                    const newReveal = [...reveal[category]];
+                                    newReveal[index] = !newReveal[index];
+                                    setReveal({ ...reveal, [category]: newReveal });
+                                }} className="w-full">
+                                    {reveal[category][index] ? 'Hide Solution' : 'Reveal Solution'}
+                                </Button>
+                                {reveal[category][index] && <div className="mt-2">{question.solution}</div>}
                             </div>
                         ))}
                     </div>

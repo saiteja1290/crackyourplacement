@@ -21,7 +21,7 @@ export default function NavBar() {
 
     const NavItems = () => (
         <>
-            <Link href="/">
+            <Link href="/dashboard">
                 <Button variant="ghost" className="w-full justify-start">Home</Button>
             </Link>
             <Link href="/about">

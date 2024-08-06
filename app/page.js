@@ -150,7 +150,7 @@ export default function SpotlightPreview() {
           Be Consistent<br /> in your preparation
         </h1>
         <p className="mt-4 font-normal text-base text-neutral-300 max-w-lg text-center mx-auto">
-          Dont miss a thing in your preparation, our app will help you with Core subjects, DSA and SQL. Solve The challenges and get the best out of you.
+          I honestly dont know what to put here
         </p>
 
         <p className="mt-4 font-normal text-base text-neutral-300 max-w-lg text-center mx-auto"><Link href="/auth/register">
